@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Right of Way — Sailing Rules Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ocean-deep: #0a1628;
+    --ocean-mid: #0f2440;
+    --ocean-light: #163a5f;
+    --foam: #e8f4f8;
+    --gold: #f0c040;
+    --gold-dim: #b8922e;
+    --red-boat: #e85d4a;
+    --green-boat: #3ebd73;
+    --blue-boat: #4a9ee8;
+    --wind: #88c8e8;
+    --correct: #3ebd73;
+    --wrong: #e85d4a;
+    --text: #dce8f0;
+    --text-dim: #7a98b0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--ocean-deep);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ocean background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 120% 60% at 50% 110%, #0d2e52 0%, transparent 70%),
+      radial-gradient(ellipse 80% 40% at 20% 80%, #0a2844 0%, transparent 60%),
+      linear-gradient(180deg, #060e1a 0%, #0a1628 40%, #0f2440 100%);
+    z-index: -2;
+  }
+
+  /* Wave pattern overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='200' height='40' viewBox='0 0 200 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 Q25 5 50 20 T100 20 T150 20 T200 20' fill='none' stroke='%23ffffff06' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 200px 40px;
+    animation: waves 8s linear infinite;
+    z-index: -1;
+  }
+
+  @keyframes waves {
+    from { background-position-x: 0; }
+    to { background-position-x: 200px; }
+  }
+
+  /* ─── Start Screen ─── */
+  #start-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 20px rgba(240, 192, 64, 0.3));
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--foam), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  .btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.9rem 2.5rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.03em;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold), #e8a820);
+    color: var(--ocean-deep);
+    box-shadow: 0 4px 25px rgba(240, 192, 64, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 35px rgba(240, 192, 64, 0.45);
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-top: 0.8rem;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.14);
+  }
+
+  /* ─── Rules Panel ─── */
+  #rules-screen {
+    display: none;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .rules-back {
+    font-family: 'Outfit', sans-serif;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rules-back:hover { color: var(--text); }
+
+  #rules-screen h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--foam);
+  }
+
+  .rule-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 1.3rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: background 0.2s;
+  }
+
+  .rule-card:hover { background: rgba(255,255,255,0.07); }
+
+  .rule-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .rule-card p {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ─── Game Screen ─── */
+  #game-screen {
+    display: none;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .score-display {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+  }
+
+  .score-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+  }
+
+  .score-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .level-badge {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--wind);
+  }
+
+  .streak-indicator {
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  /* Scenario area */
+  .scenario-container {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .scenario-title {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .canvas-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #081420 0%, #0c2238 50%, #0e2a48 100%);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .wind-indicator {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--wind);
+    border: 1px solid rgba(136, 200, 232, 0.15);
+  }
+
+  .wind-arrow {
+    display: inline-block;
+    font-size: 1.1rem;
+    transition: transform 0.3s;
+  }
+
+  /* Choice buttons */
+  .choices {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .choice-btn {
+    flex: 1;
+    min-width: 140px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 1rem 1.2rem;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .choice-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-1px);
+  }
+
+  .choice-btn.correct {
+    border-color: var(--correct);
+    background: rgba(62, 189, 115, 0.15);
+    color: var(--correct);
+  }
+
+  .choice-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(232, 93, 74, 0.15);
+    color: var(--wrong);
+  }
+
+  .choice-btn:disabled { cursor: default; opacity: 0.7; }
+
+  .choice-btn .boat-indicator {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* Explanation panel */
+  .explanation {
+    display: none;
+    margin-top: 1rem;
+    padding: 1.2rem 1.5rem;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    animation: slideUp 0.35s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .explanation.correct-exp {
+    background: rgba(62, 189, 115, 0.08);
+    border: 1px solid rgba(62, 189, 115, 0.2);
+    color: #a0e0b8;
+  }
+
+  .explanation.wrong-exp {
+    background: rgba(232, 93, 74, 0.08);
+    border: 1px solid rgba(232, 93, 74, 0.2);
+    color: #f0a898;
+  }
+
+  .explanation strong { color: var(--foam); }
+
+  .next-btn {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  /* Game Over */
+  #gameover-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+  }
+
+  .final-score {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--gold);
+    margin: 1rem 0 0.3rem;
+  }
+
+  .final-label {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .stat-box {
+    text-align: center;
+  }
+
+  .stat-box .val {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--foam);
+  }
+
+  .stat-box .lab {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* progress bar */
+  .progress-bar-outer {
+    width: 100%;
+    max-width: 350px;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    margin: 0 auto 1.5rem;
+    overflow: hidden;
+  }
+
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #e8a820);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .question-counter {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .game-header { flex-direction: column; align-items: flex-start; }
+    .canvas-wrapper { aspect-ratio: 1/1; }
+    .choices { flex-direction: column; }
+    .choice-btn { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ START SCREEN ═══════ -->
+<div id="start-screen">
+  <svg class="logo-icon" viewBox="0 0 80 80" fill="none">
+    <path d="M40 8 L40 60" stroke="#f0c040" stroke-width="2.5"/>
+    <path d="M40 12 L62 35 L40 48Z" fill="rgba(240,192,64,0.2)" stroke="#f0c040" stroke-width="1.5"/>
+    <path d="M25 68 Q40 58 55 68 L58 72 Q40 64 22 72Z" fill="rgba(136,200,232,0.3)" stroke="#88c8e8" stroke-width="1"/>
+    <ellipse cx="40" cy="72" rx="22" ry="3" fill="rgba(136,200,232,0.1)"/>
+  </svg>
+  <h1>Right of Way</h1>
+  <p class="subtitle">Master sailing traffic rules through interactive scenarios. Pick the boat with right of way — and learn why.</p>
+  <button class="btn btn-primary" onclick="startGame()">Start Training</button>
+  <button class="btn btn-secondary" onclick="showRules()">Read the Rules First</button>
+</div>
+
+<!-- ═══════ RULES SCREEN ═══════ -->
+<div id="rules-screen">
+  <button class="rules-back" onclick="showStart()">← Back</button>
+  <h2>Sailing Right of Way Rules</h2>
+
+  <div class="rule-card">
+    <h3>1. Port gives way to Starboard</h3>
+    <p>When two boats are on opposite tacks (wind coming from different sides), the boat on <strong>port tack</strong> (wind from the left / boom to starboard) must give way to the boat on <strong>starboard tack</strong> (wind from the right / boom to port). This is the most fundamental rule.</p>
+  </div>
+
+  <div class="rule-card">
+    <h3>2. Windward boat keeps clear</h3>
+    <p>When two boats are on the <strong>same tack</strong>, the <strong>windward boat</strong> (closer to the wind source) must keep clear of the <strong>leeward boat</strong> (further from the wind). The leeward boat has right of way.</p>
+  </div>
+
+  <div class="rule-card">
+    <h3>3. Overtaking boat keeps clear</h3>
+    <p>A boat that is <strong>overtaking</strong> another must keep clear of the boat ahead, regardless of tack. The boat being overtaken has right of way.</p>
+  </div>
+
+  <div class="rule-card">
+    <h3>4. Sail gives way to restricted vessels</h3>
+    <p>Sailboats under sail have right of way over powerboats in most situations. However, sailboats must give way to vessels that are <strong>restricted in ability to maneuver</strong>, fishing vessels with nets out, and vessels constrained by draft.</p>
+  </div>
+
+  <div class="rule-card">
+    <h3>5. Wind shadow</h3>
+    <p>When a boat sails into the <strong>wind shadow</strong> of another, the upwind boat is "blanketing" the downwind boat. While not strictly a right-of-way rule, the windward boat in this scenario must keep clear (Rule 2 applies). Stealing wind is considered aggressive and poor etiquette.</p>
+  </div>
+
+  <div class="rule-card">
+    <h3>6. Starboard & Port Explained</h3>
+    <p><strong>Starboard tack:</strong> Wind comes over the starboard (right) side; the boom is on the port (left) side.<br>
+    <strong>Port tack:</strong> Wind comes over the port (left) side; the boom is on the starboard (right) side.<br>
+    A boat's tack is determined by which side the wind comes from, not which way it's heading.</p>
+  </div>
+
+  <button class="btn btn-primary" onclick="startGame()" style="margin-top: 1rem;">Start Training</button>
+</div>
+
+<!-- ═══════ GAME SCREEN ═══════ -->
+<div id="game-screen">
+  <div class="game-header">
+    <div class="score-display">
+      <div class="score-item">
+        <span class="score-label">Score</span>
+        <span class="score-value" id="score">0</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Streak</span>
+        <span class="streak-indicator" id="streak">0 🔥</span>
+      </div>
+    </div>
+    <span class="level-badge" id="level-badge">Level 1 — Basics</span>
+  </div>
+
+  <div class="question-counter" id="question-counter">Question 1 / 15</div>
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="progress-bar" style="width: 0%"></div>
+  </div>
+
+  <div class="scenario-container">
+    <p class="scenario-title" id="scenario-desc">Loading scenario...</p>
+    <div class="canvas-wrapper">
+      <canvas id="sea-canvas"></canvas>
+      <div class="wind-indicator">
+        <span class="wind-arrow" id="wind-arrow">↓</span>
+        <span id="wind-label">Wind: North</span>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.6rem;">Which boat has right of way?</p>
+  <div class="choices" id="choices"></div>
+
+  <div class="explanation" id="explanation"></div>
+  <button class="btn btn-primary next-btn" id="next-btn" onclick="nextScenario()">Next Scenario →</button>
+</div>
+
+<!-- ═══════ GAME OVER ═══════ -->
+<div id="gameover-screen">
+  <svg class="logo-icon" viewBox="0 0 80 80" fill="none">
+    <path d="M40 8 L40 60" stroke="#f0c040" stroke-width="2.5"/>
+    <path d="M40 12 L62 35 L40 48Z" fill="rgba(240,192,64,0.2)" stroke="#f0c040" stroke-width="1.5"/>
+    <path d="M25 68 Q40 58 55 68 L58 72 Q40 64 22 72Z" fill="rgba(136,200,232,0.3)" stroke="#88c8e8" stroke-width="1"/>
+  </svg>
+  <h1 style="font-size: 2rem;">Training Complete</h1>
+  <div class="final-score" id="final-score">0</div>
+  <div class="final-label">points earned</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="val" id="final-correct">0</div><div class="lab">Correct</div></div>
+    <div class="stat-box"><div class="val" id="final-wrong">0</div><div class="lab">Wrong</div></div>
+    <div class="stat-box"><div class="val" id="final-streak">0</div><div class="lab">Best Streak</div></div>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">Train Again</button>
+  <button class="btn btn-secondary" onclick="showRules()">Review Rules</button>
+</div>
+
+<script>
+/*
+ * COORDINATE SYSTEM — everything in SCREEN SPACE:
+ *   +X = right, +Y = down
+ *   Angles: 0 = right, PI/2 = down, PI = left, -PI/2 (or 3PI/2) = up
+ *   Canvas rotation matches this directly.
+ *
+ * Wind "from" direction uses compass labels but stored as screen-angle
+ * showing where the wind BLOWS TO (the direction the wind pushes things).
+ *
+ * Boat heading = screen angle the bow points toward.
+ */
+
+// ─── Game State ───
+let state = {
+  score: 0, streak: 0, bestStreak: 0, correct: 0, wrong: 0,
+  questionIndex: 0, totalQuestions: 15, scenarios: [], current: null, answered: false
+};
+
+// ─── Wind Directions ───
+// "Wind from North" means wind blows TO the south = downward on screen
+// screenAngle = direction wind blows TO (screen space)
+const WIND_DIRS = {
+  N:  { screenAngle: Math.PI / 2,     label: 'North',     arrow: '↓'  },
+  NE: { screenAngle: 3 * Math.PI / 4, label: 'Northeast', arrow: '↙' },
+  E:  { screenAngle: Math.PI,         label: 'East',      arrow: '←'  },
+  SE: { screenAngle: -3 * Math.PI / 4,label: 'Southeast', arrow: '↖' },
+  S:  { screenAngle: -Math.PI / 2,    label: 'South',     arrow: '↑'  },
+  SW: { screenAngle: -Math.PI / 4,    label: 'Southwest', arrow: '↗' },
+  W:  { screenAngle: 0,               label: 'West',      arrow: '→'  },
+  NW: { screenAngle: Math.PI / 4,     label: 'Northwest', arrow: '↘' }
+};
+
+const BOAT_COLORS = ['#e85d4a', '#4a9ee8', '#3ebd73', '#c87ee8'];
+const BOAT_NAMES  = ['Red', 'Blue', 'Green', 'Purple'];
+
+// ─── Helpers ───
+function randomWind() {
+  const keys = Object.keys(WIND_DIRS);
+  return keys[Math.floor(Math.random() * keys.length)];
+}
+
+function randRange(min, max) { return min + Math.random() * (max - min); }
+
+function normalizeAngle(a) {
+  while (a > Math.PI) a -= 2 * Math.PI;
+  while (a < -Math.PI) a += 2 * Math.PI;
+  return a;
+}
+
+// Screen-space direction vector for a screen angle
+function dirX(a) { return Math.cos(a); }
+function dirY(a) { return Math.sin(a); }
+
+// Determine tack from screen-space heading and wind key.
+// Wind comes FROM a compass direction. The "wind from" screen angle
+// is opposite to windBlowsTo: windFrom = windBlowsTo + PI.
+// The tack depends on which side of the boat the wind crosses.
+// Cross product of (boat forward) × (wind-from vector):
+//   positive = wind from starboard → starboard tack
+//   negative = wind from port → port tack
+function getTack(boatScreenHeading, windKey) {
+  const wind = WIND_DIRS[windKey];
+  const windFromAngle = wind.screenAngle + Math.PI; // direction wind comes FROM on screen
+  const bx = dirX(boatScreenHeading), by = dirY(boatScreenHeading);
+  const wx = dirX(windFromAngle),     wy = dirY(windFromAngle);
+  const cross = bx * wy - by * wx;
+  return cross > 0 ? 'starboard' : 'port';
+}
+
+function getLevel(qi) {
+  if (qi < 5) return { num: 1, name: 'Basics' };
+  if (qi < 9) return { num: 2, name: 'Same Tack' };
+  if (qi < 13) return { num: 3, name: 'Advanced' };
+  return { num: 4, name: 'Multi-Boat' };
+}
+
+// ─── Scenario Generation ───
+function generateScenarios() {
+  const scenarios = [];
+  scenarios.push(...generatePortStarboard(5));
+  scenarios.push(...generateSameTack(4));
+  scenarios.push(...generateAdvanced(4));
+  scenarios.push(...generateMultiBoat(2));
+  return scenarios;
+}
+
+// Place two boats converging toward the center from opposite-ish sides
+function convergingPositions(headingA, headingB) {
+  // Each boat starts offset BEHIND its heading direction from center,
+  // so they sail TOWARD each other near the center.
+  const dist = 0.18 + Math.random() * 0.06;
+  return {
+    ax: 0.5 - dirX(headingA) * dist,
+    ay: 0.5 - dirY(headingA) * dist,
+    bx: 0.5 - dirX(headingB) * dist,
+    by: 0.5 - dirY(headingB) * dist
+  };
+}
+
+// Level 1: Port/Starboard — boats on opposite tacks converging
+function generatePortStarboard(count) {
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const windKey = randomWind();
+    const wind = WIND_DIRS[windKey];
+    const windTo = wind.screenAngle; // direction wind blows to
+
+    // Boats sail roughly across the wind (beam reach to close hauled).
+    // Rotate the wind direction ±(60°–110°) to get two different headings
+    // that produce opposite tacks.
+    const offsetA = randRange(0.4, 0.8);   // ~25°-45° off perpendicular
+    const offsetB = randRange(0.4, 0.8);
+
+    // headingA crosses wind one way, headingB the other
+    let headingA = normalizeAngle(windTo + Math.PI / 2 + offsetA);
+    let headingB = normalizeAngle(windTo - Math.PI / 2 - offsetB);
+
+    // Verify we get opposite tacks; if not, flip one
+    let tackA = getTack(headingA, windKey);
+    let tackB = getTack(headingB, windKey);
+    if (tackA === tackB) {
+      headingB = normalizeAngle(headingB + Math.PI * 0.5);
+      tackB = getTack(headingB, windKey);
+    }
+
+    const stbdBoat = tackA === 'starboard' ? 0 : 1;
+    const portBoat = stbdBoat === 0 ? 1 : 0;
+
+    const pos = convergingPositions(headingA, headingB);
+
+    results.push({
+      windKey,
+      boats: [
+        { x: pos.ax, y: pos.ay, heading: headingA, color: BOAT_COLORS[0], name: BOAT_NAMES[0], tack: tackA },
+        { x: pos.bx, y: pos.by, heading: headingB, color: BOAT_COLORS[1], name: BOAT_NAMES[1], tack: tackB }
+      ],
+      correctIndex: stbdBoat,
+      rule: 'Port/Starboard',
+      explanation: `<strong>${BOAT_NAMES[stbdBoat]}</strong> is on <strong>starboard tack</strong> (wind coming over the starboard/right side), while <strong>${BOAT_NAMES[portBoat]}</strong> is on <strong>port tack</strong>. Under the port/starboard rule, the port-tack boat must give way. ${BOAT_NAMES[stbdBoat]} has right of way.`
+    });
+  }
+  return results;
+}
+
+// Level 2: Same tack, windward/leeward
+function generateSameTack(count) {
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const windKey = randomWind();
+    const wind = WIND_DIRS[windKey];
+    const windTo = wind.screenAngle;
+
+    // Both boats on the same tack — heading in roughly the same direction
+    const baseHeading = normalizeAngle(windTo + (Math.random() > 0.5 ? 1.2 : -1.2));
+    const headingA = normalizeAngle(baseHeading + randRange(-0.1, 0.1));
+    const headingB = normalizeAngle(baseHeading + randRange(-0.1, 0.1));
+
+    // Wind blows TO windTo. "Windward" = closer to where wind comes FROM.
+    // Wind comes from direction windTo + PI.
+    const windFromX = dirX(windTo + Math.PI);
+    const windFromY = dirY(windTo + Math.PI);
+
+    const offset = 0.1 + Math.random() * 0.05;
+    const cx = 0.5, cy = 0.5;
+
+    // Boat 0 = windward (shifted toward where wind comes from)
+    // Boat 1 = leeward (shifted toward where wind blows to)
+    const boats = [
+      {
+        x: cx + windFromX * offset,
+        y: cy + windFromY * offset,
+        heading: headingA, color: BOAT_COLORS[0], name: BOAT_NAMES[0],
+        tack: getTack(headingA, windKey), position: 'windward'
+      },
+      {
+        x: cx - windFromX * offset,
+        y: cy - windFromY * offset,
+        heading: headingB, color: BOAT_COLORS[1], name: BOAT_NAMES[1],
+        tack: getTack(headingB, windKey), position: 'leeward'
+      }
+    ];
+
+    results.push({
+      windKey, boats,
+      correctIndex: 1,
+      rule: 'Windward/Leeward',
+      explanation: `Both boats are on the <strong>same tack</strong>. When this happens, the <strong>windward boat</strong> (${BOAT_NAMES[0]}, closer to the wind) must keep clear of the <strong>leeward boat</strong> (${BOAT_NAMES[1]}, further from the wind). ${BOAT_NAMES[1]} has right of way.`
+    });
+  }
+  return results;
+}
+
+// Level 3: Overtaking + Wind Shadow
+function generateAdvanced(count) {
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const windKey = randomWind();
+    const wind = WIND_DIRS[windKey];
+    const windTo = wind.screenAngle;
+    const isOvertaking = i < 2;
+
+    if (isOvertaking) {
+      // Both heading same way, one behind the other
+      const heading = normalizeAngle(windTo + randRange(0.8, 1.5) * (Math.random() > 0.5 ? 1 : -1));
+      const hx = dirX(heading), hy = dirY(heading);
+
+      const boats = [
+        { x: 0.5 + hx * 0.12, y: 0.5 + hy * 0.12, heading, color: BOAT_COLORS[0], name: BOAT_NAMES[0], role: 'ahead' },
+        { x: 0.5 - hx * 0.12, y: 0.5 - hy * 0.12, heading: normalizeAngle(heading + randRange(-0.08, 0.08)), color: BOAT_COLORS[1], name: BOAT_NAMES[1], role: 'overtaking' }
+      ];
+
+      results.push({
+        windKey, boats, correctIndex: 0, rule: 'Overtaking',
+        explanation: `<strong>${BOAT_NAMES[1]}</strong> is <strong>overtaking</strong> ${BOAT_NAMES[0]} from behind. The overtaking boat must always keep clear, regardless of tack or wind position. <strong>${BOAT_NAMES[0]}</strong> (the boat ahead) has right of way.`
+      });
+    } else {
+      // Wind shadow: one boat directly upwind of the other
+      const windFromX = dirX(windTo + Math.PI);
+      const windFromY = dirY(windTo + Math.PI);
+      const heading = normalizeAngle(windTo + randRange(0.9, 1.4) * (Math.random() > 0.5 ? 1 : -1));
+      const sep = 0.1 + Math.random() * 0.05;
+
+      const boats = [
+        {
+          x: 0.5 + windFromX * sep, y: 0.5 + windFromY * sep,
+          heading, color: BOAT_COLORS[0], name: BOAT_NAMES[0],
+          position: 'windward', windShadow: true
+        },
+        {
+          x: 0.5 - windFromX * sep, y: 0.5 - windFromY * sep,
+          heading: normalizeAngle(heading + randRange(-0.06, 0.06)),
+          color: BOAT_COLORS[1], name: BOAT_NAMES[1],
+          position: 'leeward', windShadow: true
+        }
+      ];
+
+      results.push({
+        windKey, boats, correctIndex: 1, rule: 'Wind Shadow',
+        explanation: `<strong>${BOAT_NAMES[0]}</strong> is directly upwind of ${BOAT_NAMES[1]}, casting a <strong>wind shadow</strong> and stealing ${BOAT_NAMES[1]}'s wind. Since both boats are on the same tack, the windward/leeward rule applies: the <strong>windward boat</strong> (${BOAT_NAMES[0]}) must keep clear. <strong>${BOAT_NAMES[1]}</strong> (leeward) has right of way.`
+      });
+    }
+  }
+  return results;
+}
+
+// Level 4: Three boats converging
+function generateMultiBoat(count) {
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const windKey = randomWind();
+    const wind = WIND_DIRS[windKey];
+    const windTo = wind.screenAngle;
+
+    // 3 boats with different headings — mix of tacks
+    const positions = [{ x: 0.3, y: 0.35 }, { x: 0.65, y: 0.55 }, { x: 0.5, y: 0.7 }];
+    const headings = [
+      normalizeAngle(windTo + 1.2),   // likely one tack
+      normalizeAngle(windTo - 1.2),   // likely opposite tack
+      normalizeAngle(windTo - 0.9)    // likely same as boat 1
+    ];
+
+    const boats = [];
+    for (let j = 0; j < 3; j++) {
+      boats.push({
+        x: positions[j].x, y: positions[j].y,
+        heading: headings[j], color: BOAT_COLORS[j], name: BOAT_NAMES[j],
+        tack: getTack(headings[j], windKey)
+      });
+    }
+
+    let stbdBoats = boats.map((b, idx) => ({ ...b, idx })).filter(b => b.tack === 'starboard');
+    let correctIdx, explanation;
+
+    if (stbdBoats.length === 1) {
+      correctIdx = stbdBoats[0].idx;
+      explanation = `With three boats converging, we first apply the <strong>port/starboard rule</strong>. <strong>${boats[correctIdx].name}</strong> is the only boat on <strong>starboard tack</strong>, so both port-tack boats must give way. ${boats[correctIdx].name} has right of way.`;
+    } else if (stbdBoats.length > 1) {
+      const windFromX = dirX(windTo + Math.PI);
+      const windFromY = dirY(windTo + Math.PI);
+      stbdBoats.sort((a, b) => {
+        const da = a.x * windFromX + a.y * windFromY;
+        const db = b.x * windFromX + b.y * windFromY;
+        return da - db;
+      });
+      correctIdx = stbdBoats[0].idx;
+      explanation = `Multiple boats are on starboard tack. Among same-tack boats, the <strong>leeward boat</strong> has right of way. <strong>${boats[correctIdx].name}</strong> is the most leeward starboard-tack boat and has right of way.`;
+    } else {
+      const windFromX = dirX(windTo + Math.PI);
+      const windFromY = dirY(windTo + Math.PI);
+      const sorted = boats.map((b, idx) => ({ ...b, idx })).sort((a, b) => {
+        return (a.x * windFromX + a.y * windFromY) - (b.x * windFromX + b.y * windFromY);
+      });
+      correctIdx = sorted[0].idx;
+      explanation = `All boats are on <strong>port tack</strong>. The windward/leeward rule applies: the <strong>leeward boat</strong> (${boats[correctIdx].name}) has right of way.`;
+    }
+
+    results.push({ windKey, boats, correctIndex: correctIdx, rule: 'Multi-Boat', explanation });
+  }
+  return results;
+}
+
+// ─── Canvas Drawing ───
+function drawScenario(scenario) {
+  const canvas = document.getElementById('sea-canvas');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+
+  // Ocean
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#081420');
+  grad.addColorStop(0.5, '#0c2238');
+  grad.addColorStop(1, '#0e2a48');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Wave lines
+  ctx.strokeStyle = 'rgba(136, 200, 232, 0.06)';
+  ctx.lineWidth = 1;
+  for (let wy = 20; wy < H; wy += 30) {
+    ctx.beginPath();
+    for (let wx = 0; wx <= W; wx += 5) {
+      const y = wy + Math.sin(wx * 0.03 + wy * 0.1) * 4;
+      wx === 0 ? ctx.moveTo(wx, y) : ctx.lineTo(wx, y);
+    }
+    ctx.stroke();
+  }
+
+  // Wind flow lines (direction wind blows TO)
+  const wind = WIND_DIRS[scenario.windKey];
+  const wdx = dirX(wind.screenAngle);
+  const wdy = dirY(wind.screenAngle);
+  ctx.strokeStyle = 'rgba(136, 200, 232, 0.08)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 10]);
+  for (let i = -3; i <= 3; i++) {
+    const ox = -wdy * i * 40;
+    const oy = wdx * i * 40;
+    ctx.beginPath();
+    ctx.moveTo(W/2 + ox - wdx * 300, H/2 + oy - wdy * 300);
+    ctx.lineTo(W/2 + ox + wdx * 300, H/2 + oy + wdy * 300);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Wind shadow cone
+  if (scenario.boats.some(b => b.windShadow)) {
+    const upwindBoat = scenario.boats.find(b => b.position === 'windward');
+    if (upwindBoat) {
+      const bx = upwindBoat.x * W, by = upwindBoat.y * H;
+      // Shadow extends in wind-blows-to direction
+      const shadowDx = wdx * 200;
+      const shadowDy = wdy * 200;
+      const perpX = -wdy * 40;
+      const perpY = wdx * 40;
+
+      ctx.fillStyle = 'rgba(136, 200, 232, 0.05)';
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(bx + shadowDx + perpX, by + shadowDy + perpY);
+      ctx.lineTo(bx + shadowDx - perpX, by + shadowDy - perpY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(136, 200, 232, 0.12)';
+      ctx.setLineDash([4, 6]);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Draw boats
+  scenario.boats.forEach(boat => {
+    drawBoat(ctx, boat.x * W, boat.y * H, boat.heading, boat.color, W, H, boat.name, scenario.windKey);
+  });
+
+  // Update wind indicator
+  document.getElementById('wind-arrow').textContent = wind.arrow;
+  document.getElementById('wind-label').textContent = 'Wind: ' + wind.label;
+}
+
+function drawBoat(ctx, x, y, heading, color, W, H, name, windKey) {
+  const size = Math.min(W, H) * 0.07;
+
+  // heading is a screen-space angle (0=right, PI/2=down, etc.)
+  // Boat hull is drawn with bow at (0, -size) in local space (pointing UP).
+  // We rotate by (heading + PI/2) so that:
+  //   heading=0 (right) → rotate 90° CW → bow points right ✓
+  //   heading=PI/2 (down) → rotate 180° → bow points down ✓
+  //   heading=-PI/2 (up) → rotate 0° → bow stays up ✓
+  //   heading=PI (left) → rotate 270° → bow points left ✓
+  const rot = heading + Math.PI / 2;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+
+  // Hull — bow at -Y, stern at +Y
+  ctx.fillStyle = color;
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 1.2);
+  ctx.quadraticCurveTo(size * 0.55, -size * 0.3, size * 0.45, size * 0.7);
+  ctx.quadraticCurveTo(0, size * 0.95, -size * 0.45, size * 0.7);
+  ctx.quadraticCurveTo(-size * 0.55, -size * 0.3, 0, -size * 1.2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Mast
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 0.4);
+  ctx.lineTo(0, size * 0.3);
+  ctx.stroke();
+
+  // Sail — determine which side based on tack
+  // Wind comes from a direction; boom swings to the opposite side.
+  // In local boat space (bow=up), we compute the wind's relative angle
+  // to decide if sail goes left or right.
+  const wind = WIND_DIRS[windKey];
+  const windFromScreen = wind.screenAngle + Math.PI; // where wind comes FROM
+  const relWind = normalizeAngle(windFromScreen - heading);
+  // If relWind > 0, wind from starboard (right side) → boom to port (left) → sail left (-X)
+  // If relWind < 0, wind from port (left side) → boom to starboard (right) → sail right (+X)
+  const sailSide = relWind > 0 ? -1 : 1;
+
+  ctx.fillStyle = color + '88';
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 0.8);
+  ctx.quadraticCurveTo(sailSide * size * 0.55, -size * 0.1, 0, size * 0.25);
+  ctx.lineTo(0, -size * 0.8);
+  ctx.fill();
+  ctx.stroke();
+
+  // Direction arrow (dashed, ahead of bow)
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 1.3);
+  ctx.lineTo(0, -size * 2.2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Arrowhead
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 2.4);
+  ctx.lineTo(-4, -size * 2.0);
+  ctx.lineTo(4, -size * 2.0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  // Label
+  ctx.fillStyle = color;
+  ctx.font = `bold ${Math.max(11, size * 0.55)}px Outfit`;
+  ctx.textAlign = 'center';
+  ctx.fillText(name, x, y + size * 1.8);
+}
+
+// ─── Scenario Description ───
+function getDescription(scenario) {
+  const level = getLevel(state.questionIndex);
+  if (level.num === 1) {
+    return `Two boats are approaching each other. The wind is blowing from the <strong>${WIND_DIRS[scenario.windKey].label.toLowerCase()}</strong>. Which boat has right of way?`;
+  } else if (level.num === 2) {
+    return `Both boats are sailing on the same tack with wind from the <strong>${WIND_DIRS[scenario.windKey].label.toLowerCase()}</strong>. One is closer to the wind than the other. Which boat has right of way?`;
+  } else if (level.num === 3) {
+    if (scenario.rule === 'Overtaking') {
+      return `One boat is overtaking another from behind. Wind from the <strong>${WIND_DIRS[scenario.windKey].label.toLowerCase()}</strong>. Which boat has right of way?`;
+    }
+    return `One boat is directly upwind of the other, casting a wind shadow. Wind from the <strong>${WIND_DIRS[scenario.windKey].label.toLowerCase()}</strong>. Which boat has right of way?`;
+  }
+  return `Three boats are converging! Wind from the <strong>${WIND_DIRS[scenario.windKey].label.toLowerCase()}</strong>. Determine which boat has right of way.`;
+}
+
+// ─── UI Navigation ───
+function showStart() {
+  document.getElementById('start-screen').style.display = 'flex';
+  document.getElementById('rules-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('gameover-screen').style.display = 'none';
+}
+
+function showRules() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('rules-screen').style.display = 'block';
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('gameover-screen').style.display = 'none';
+}
+
+function startGame() {
+  state = {
+    score: 0, streak: 0, bestStreak: 0, correct: 0, wrong: 0,
+    questionIndex: 0, totalQuestions: 15, scenarios: generateScenarios(),
+    current: null, answered: false
+  };
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('rules-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+  document.getElementById('gameover-screen').style.display = 'none';
+  loadScenario();
+}
+
+function loadScenario() {
+  state.current = state.scenarios[state.questionIndex];
+  state.answered = false;
+
+  const level = getLevel(state.questionIndex);
+  document.getElementById('level-badge').textContent = `Level ${level.num} — ${level.name}`;
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('streak').textContent = state.streak + ' 🔥';
+  document.getElementById('question-counter').textContent = `Question ${state.questionIndex + 1} / ${state.totalQuestions}`;
+  document.getElementById('progress-bar').style.width = ((state.questionIndex) / state.totalQuestions * 100) + '%';
+  document.getElementById('scenario-desc').innerHTML = getDescription(state.current);
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  state.current.boats.forEach((boat, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="boat-indicator" style="background:${boat.color}"></span>${boat.name}`;
+    btn.onclick = () => selectAnswer(idx);
+    choicesEl.appendChild(btn);
+  });
+
+  document.getElementById('explanation').style.display = 'none';
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('next-btn').style.display = 'none';
+
+  drawScenario(state.current);
+}
+
+function selectAnswer(idx) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const correct = state.current.correctIndex;
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    if (i === idx && idx !== correct) btn.classList.add('wrong');
+  });
+
+  const expEl = document.getElementById('explanation');
+  const isCorrect = idx === correct;
+
+  if (isCorrect) {
+    const streakBonus = state.streak >= 2 ? state.streak : 0;
+    const levelBonus = getLevel(state.questionIndex).num;
+    const points = 10 * levelBonus + streakBonus * 5;
+    state.score += points;
+    state.streak++;
+    state.correct++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+    expEl.className = 'explanation correct-exp';
+    expEl.innerHTML = `✓ <strong>Correct! +${points} points</strong>${streakBonus > 0 ? ` (includes ${streakBonus * 5} streak bonus)` : ''}<br><br>${state.current.explanation}`;
+  } else {
+    state.streak = 0;
+    state.wrong++;
+    expEl.className = 'explanation wrong-exp';
+    expEl.innerHTML = `✗ <strong>Not quite.</strong><br><br>${state.current.explanation}`;
+  }
+
+  expEl.style.display = 'block';
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('streak').textContent = state.streak + ' 🔥';
+  document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function nextScenario() {
+  state.questionIndex++;
+  document.getElementById('progress-bar').style.width = ((state.questionIndex) / state.totalQuestions * 100) + '%';
+  if (state.questionIndex >= state.totalQuestions) {
+    showGameOver();
+  } else {
+    loadScenario();
+  }
+}
+
+function showGameOver() {
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('gameover-screen').style.display = 'flex';
+  document.getElementById('final-score').textContent = state.score;
+  document.getElementById('final-correct').textContent = state.correct;
+  document.getElementById('final-wrong').textContent = state.wrong;
+  document.getElementById('final-streak').textContent = state.bestStreak;
+}
+
+window.addEventListener('resize', () => {
+  if (state.current && document.getElementById('game-screen').style.display === 'block') {
+    drawScenario(state.current);
+  }
+});
+</script>
+</body>
+</html>
